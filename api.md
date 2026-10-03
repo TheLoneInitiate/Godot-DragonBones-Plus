@@ -7,59 +7,152 @@ New and newly bound methods are first. Unless noted, call them on `get_armature(
 ### DragonBonesArmature
 
 `fade_in_masked(animation_name, time, loop, layer, group, fade_out_mode, bones)`
+
 Plays a clip that affects only the named bones and their children. Sets `resetToPose` and a 0.05 second auto fade-out. Also on the view.
 
+```gdscript
+arm.fade_in_masked(
+    "Swing", 0.0, 1, 1, "arms",
+    DragonBonesArmature.FADE_OUT_NONE,
+    PackedStringArray(["ArmLeftUpper", "ArmRightUpper"])
+)
+```
+
 `fade_out(animation_name, time = 0.0)`
+
 Fades one active clip out. This is what runs the pose reset. `stop()` does not.
 
+```gdscript
+arm.fade_out("Swing", 0.1)
+```
+
 `set_animation_time_scale(animation_name, scale)`
+
 Sets the speed of one active clip. `1.0` is normal. Does not change other clips.
 
+```gdscript
+arm.set_animation_time_scale("Walk", 1.5)
+arm.set_animation_time_scale("Swing", 2.0)
+```
+
 `get_animation_states()`
+
 Returns an array of dictionaries: `name`, `layer`, `group`, `time_scale`, `progress`.
 
+```gdscript
+print(arm.get_animation_states())
+```
+
 `set_bone_rotation_override(name, rotation)`
+
 Adds a rotation, in radians, after the animation. Does not change position.
 
+```gdscript
+arm.set_bone_rotation_override("ArmRightUpper", aim)
+```
+
 `clear_bone_override(name)`
+
 Clears the additive offset and sets offset mode to none.
 
+```gdscript
+arm.clear_bone_override("ArmRightUpper")
+```
+
 `set_ik_enabled(name, enabled)`
+
 Sets an IK constraint weight to `1.0` or `0.0`.
 
+```gdscript
+arm.set_ik_enabled("bone_ik2", false)
+```
+
 `set_ik_weight(name, weight)`
+
 Sets an IK constraint weight from `0.0` to `1.0`.
 
+```gdscript
+arm.set_ik_weight("bone_ik2", 0.5)
+```
+
 `cache_ik_rest(name)`
+
 Stores the IK target rest position on the first call.
 
+```gdscript
+arm.cache_ik_rest("bone_ik2")
+```
+
 `restore_ik_rest(name)`
+
 Writes the cached IK target rest position back.
 
+```gdscript
+arm.restore_ik_rest("bone_ik2")
+```
+
 `get_current_animation_on_layer(layer)`
+
 Returns the clip name on that layer. Already implemented; now bound. Also on the view.
 
+```gdscript
+print(arm.get_current_animation_on_layer(0))
+```
+
 `get_current_animation_in_group(group_name)`
+
 Returns the clip name in that group. Already implemented; now bound. Also on the view.
 
+```gdscript
+print(arm.get_current_animation_in_group("body"))
+```
+
 `set_flip_x(flip_x, recursively = false)`
+
 Flips the armature. The second argument also flips child armatures. Also on the view. The `flip_x` property still uses the one-argument setter.
+
+```gdscript
+view.set_flip_x(true, true)
+```
 
 ### DragonBonesArmatureView
 
 `signal animation_completed(animation_name)`
+
 Emitted when a clip completes. The name comes from the animation state. Looping clips do not emit it at the end of every loop.
+
+```gdscript
+func _ready() -> void:
+    $View.animation_completed.connect(_on_animation_completed)
+
+func _on_animation_completed(animation_name: String) -> void:
+    if animation_name == "Swing":
+        attacking = false
+```
 
 ### DragonBonesSlot
 
 `get_display_names()`
+
 Returns the display names on that slot, in index order.
+
+```gdscript
+var slot := arm.get_slot("torso")
+print(slot.get_display_names())
+slot.set_display_by_name("torso2")
+```
 
 ## DragonBonesArmatureView
 
 The scene node. Most playback calls are forwarded to the armature.
 
 Properties: `factory`, `active`, `debug`, `animation_loop_count`, `animation_time_scale`, `animation_callback_mode_process`, `instantiate_dragon_bones_data_name`, `instantiate_armature_name`, `instantiate_skin_name`, `current_animation`, `animation_progress`, `flip_x`, `flip_y`, `texture_override`.
+
+```gdscript
+view.animation_time_scale = 1.0
+view.play("Walk", 0)
+var arm := view.get_armature()
+```
 
 `set_factory(factory)` / `get_factory()`
 `advance(delta)`
@@ -81,6 +174,12 @@ Signal: `event_dispatched(event_object)`.
 ## DragonBonesArmature
 
 Do not create or free this object.
+
+```gdscript
+arm.fade_in("Walk", -1.0, 0, 0, "body", DragonBonesArmature.FADE_OUT_SAME_LAYER)
+arm.play("Idle", -1)
+print(arm.get_animations())
+```
 
 `for_each_armature(action)`
 `for_each_armature_recursively(action, current_depth = 0)`
@@ -116,6 +215,12 @@ Loop count: `-1` uses the clip default, `0` loops forever, `1` or more plays tha
 
 ## DragonBonesSlot
 
+```gdscript
+var slot := arm.get_slot("torso")
+slot.set_display_index(1)
+slot.set_display_by_name("none")
+```
+
 `get_slot_name()`
 `get_display_count()`
 `get_display_index()` / `set_display_index(index)`
@@ -125,6 +230,12 @@ Loop count: `-1` uses the clip default, `0` loops forever, `1` or more plays tha
 `get_child_armature()`
 
 ## DragonBonesBone
+
+```gdscript
+var bone := arm.get_bone("ArmRightUpper")
+bone.rotation = 0.5
+print(bone.get_global_position())
+```
 
 `get_name()` / `get_parent()` / `is_valid()`
 `get_position()` / `set_position(new_position)`
@@ -141,6 +252,11 @@ A direct bone write can be replaced on the next animation advance. Use `set_bone
 
 ## DragonBonesFactory
 
+```gdscript
+print(factory.get_loaded_dragon_bones_data_name_list())
+print(factory.get_loaded_dragon_bones_armature_name_list("Player"))
+```
+
 `get_loaded_dragon_bones_data_name_list()`
 `get_loaded_dragon_bones_armature_name_list(data_name)`
 `get_loaded_dragon_bones_skin_name_list(data_name, armature_name)`
@@ -149,8 +265,39 @@ A direct bone write can be replaced on the next animation advance. Use `set_bone
 
 ## DragonBonesEventObject
 
-`time`, `type`, `type_text`, `name`, `armature`, `bone`, `slot`.
+```gdscript
+func _on_event(ev: DragonBonesEventObject) -> void:
+    print(ev.get_type(), " ", ev.get_type_text())
+    var data := ev.get_data()
+    if data:
+        print(data.get_strings())
+```
+
+`get_time()` / `set_time(time)`
+`get_type()` / `set_type(type)`
+`get_type_text()` / `set_type_text(type_text)`
+`get_name()` / `set_name(name)`
+`get_armature()` / `set_armature(armature)`
+`get_bone()` / `set_bone(bone)`
+`get_slot()` / `set_slot(slot)`
+`get_data()` / `set_data(data)`
 
 `name` is often empty on animation events. Use the `animation_completed` argument for the clip name.
 
-Types: `TYPE_ANIM_START`, `TYPE_ANIM_LOOP_COMPLETE`, `TYPE_ANIM_COMPLETE`, `TYPE_ANIM_FADE_IN`, `TYPE_ANIM_FADE_IN_COMPLETE`, `TYPE_ANIM_FADE_OUT`, `TYPE_ANIM_FADE_OUT_COMPLETE`, `TYPE_FRAME_EVENT`, `TYPE_SOUND_EVENT`, `TYPE_CUSTOM`.
+Types: `TYPE_ANIM_START`, `TYPE_ANIM_LOOP_COMPLETE`, `TYPE_ANIM_COMPLETE`, `TYPE_ANIM_FADE_IN`, `TYPE_ANIM_FADE_IN_COMPLETE`, `TYPE_ANIM_FADE_OUT`, `TYPE_ANIM_FADE_OUT_COMPLETE`, `TYPE_FRAME_EVENT`, `TYPE_SOUND_EVENT`, `TYPE_CUSTOM`, `TYPE_MAX`.
+
+## DragonBonesUserData
+
+Reached through `event_object.get_data()`. These are the custom values stored on a frame event.
+
+```gdscript
+var data := ev.get_data()
+if data:
+    print(data.get_ints())
+    print(data.get_floats())
+    print(data.get_strings())
+```
+
+`get_ints()`
+`get_floats()`
+`get_strings()`
