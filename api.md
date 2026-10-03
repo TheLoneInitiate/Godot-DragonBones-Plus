@@ -154,18 +154,18 @@ view.play("Walk", 0)
 var arm := view.get_armature()
 ```
 
-`set_factory(factory)` / `get_factory()`
-`advance(delta)`
-`set_animation_loop_count(loop_count)` / `get_animation_loop_count()`
-`set_time_scale(speed_scale)` / `get_time_scale()` — the `animation_time_scale` property.
-`get_armature()`
-`set_active(active)` / `is_active()`
-`set_debug(debug)` / `is_debug()`
-`set_callback_mode_process(mode)` / `get_callback_mode_process()`
-`set_instantiate_dragon_bones_data_name(name)` / `get_instantiate_dragon_bones_data_name()`
-`set_instantiate_armature_name(name)` / `get_instantiate_armature_name()`
-`set_instantiate_skin_name(name)` / `get_instantiate_skin_name()`
-`get_rect()` / `get_global_rect()`
+- `set_factory(factory)` / `get_factory()`
+- `advance(delta)`
+- `set_animation_loop_count(loop_count)` / `get_animation_loop_count()`
+- `set_time_scale(speed_scale)` / `get_time_scale()` — the `animation_time_scale` property.
+- `get_armature()`
+- `set_active(active)` / `is_active()`
+- `set_debug(debug)` / `is_debug()`
+- `set_callback_mode_process(mode)` / `get_callback_mode_process()`
+- `set_instantiate_dragon_bones_data_name(name)` / `get_instantiate_dragon_bones_data_name()`
+- `set_instantiate_armature_name(name)` / `get_instantiate_armature_name()`
+- `set_instantiate_skin_name(name)` / `get_instantiate_skin_name()`
+- `get_rect()` / `get_global_rect()`
 
 Callback modes: `ANIMATION_CALLBACK_MODE_PROCESS_PHYSICS`, `ANIMATION_CALLBACK_MODE_PROCESS_IDLE`, `ANIMATION_CALLBACK_MODE_PROCESS_MANUAL`.
 
@@ -181,31 +181,31 @@ arm.play("Idle", -1)
 print(arm.get_animations())
 ```
 
-`for_each_armature(action)`
-`for_each_armature_recursively(action, current_depth = 0)`
-`has_animation(animation_name)` / `get_animations()`
-`is_playing()`
-`tell_animation(animation_name)` — progress from `0.0` to `1.0`.
-`seek_animation(animation_name, progress)`
-`play(animation_name, loop_count = -1)`
-`play_from_time(animation_name, time, loop_count = -1)`
-`play_from_progress(animation_name, progress, loop_count = -1)`
-`stop(animation_name, reset = false, recursively = false)`
-`stop_all_animations(reset = false, recursively = false)`
-`fade_in(animation_name, time, loop, layer, group, fade_out_mode)`
-`reset(recursively = false)`
-`has_slot(slot_name)` / `get_slot(slot_name)` / `get_slots()`
-`get_ik_constraints()`
-`set_ik_constraint(constraint_name, new_position)`
-`set_ik_constraint_bend_positive(constraint_name, bend_positive)`
-`get_bones()` / `get_bone(bone_name)`
-`advance(delta, recursively = false)`
-`get_rect()`
-`set_current_animation(current_animation)` / `get_current_animation()`
-`set_animation_progress(progress)` / `get_animation_progress()`
-`set_flip_x_(flip_x)` / `is_flipped_x()`
-`set_flip_y_(flip_y)` / `is_flipped_y()`
-`set_texture_override(texture)` / `get_texture_override()`
+- `for_each_armature(action)`
+- `for_each_armature_recursively(action, current_depth = 0)`
+- `has_animation(animation_name)` / `get_animations()`
+- `is_playing()`
+- `tell_animation(animation_name)` — progress from `0.0` to `1.0`.
+- `seek_animation(animation_name, progress)`
+- `play(animation_name, loop_count = -1)`
+- `play_from_time(animation_name, time, loop_count = -1)`
+- `play_from_progress(animation_name, progress, loop_count = -1)`
+- `stop(animation_name, reset = false, recursively = false)`
+- `stop_all_animations(reset = false, recursively = false)`
+- `fade_in(animation_name, time, loop, layer, group, fade_out_mode)`
+- `reset(recursively = false)`
+- `has_slot(slot_name)` / `get_slot(slot_name)` / `get_slots()`
+- `get_ik_constraints()`
+- `set_ik_constraint(constraint_name, new_position)`
+- `set_ik_constraint_bend_positive(constraint_name, bend_positive)`
+- `get_bones()` / `get_bone(bone_name)`
+- `advance(delta, recursively = false)`
+- `get_rect()`
+- `set_current_animation(current_animation)` / `get_current_animation()`
+- `set_animation_progress(progress)` / `get_animation_progress()`
+- `set_flip_x_(flip_x)` / `is_flipped_x()`
+- `set_flip_y_(flip_y)` / `is_flipped_y()`
+- `set_texture_override(texture)` / `get_texture_override()`
 
 Fade-out modes: `FADE_OUT_NONE`, `FADE_OUT_SAME_LAYER`, `FADE_OUT_SAME_GROUP`, `FADE_OUT_SAME_LAYER_AND_GROUP`, `FADE_OUT_ALL`, `FADE_OUT_SINGLE`.
 
