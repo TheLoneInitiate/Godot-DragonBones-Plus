@@ -221,13 +221,13 @@ slot.set_display_index(1)
 slot.set_display_by_name("none")
 ```
 
-`get_slot_name()`
-`get_display_count()`
-`get_display_index()` / `set_display_index(index)`
-`set_display_by_name(name)` — `"none"` hides the slot.
-`next_display()` / `previous_display()`
-`get_display_color_multiplier()` / `set_display_color_multiplier(color)`
-`get_child_armature()`
+- `get_slot_name()`
+- `get_display_count()`
+- `get_display_index()` / `set_display_index(index)`
+- `set_display_by_name(name)` — `"none"` hides the slot.
+- `next_display()` / `previous_display()`
+- `get_display_color_multiplier()` / `set_display_color_multiplier(color)`
+- `get_child_armature()`
 
 ## DragonBonesBone
 
@@ -237,16 +237,16 @@ bone.rotation = 0.5
 print(bone.get_global_position())
 ```
 
-`get_name()` / `get_parent()` / `is_valid()`
-`get_position()` / `set_position(new_position)`
-`get_global_position()` / `set_global_position(new_position)`
-`get_rotation()` / `set_rotation(deg_in_rad)`
-`get_global_rotation()` / `set_global_rotation(deg_in_rad)`
-`get_scale()` / `set_scale(new_scale)`
-`get_global_scale()` / `set_global_scale(new_scale)`
-`get_transform()` / `set_transform(transform)`
-`get_global_transform()` / `set_global_transform(global_transform)`
-`get_offset_mode()` / `get_offset()` / `get_animation_pose()` / `get_origin()`
+- `get_name()` / `get_parent()` / `is_valid()`
+- `get_position()` / `set_position(new_position)`
+- `get_global_position()` / `set_global_position(new_position)`
+- `get_rotation()` / `set_rotation(deg_in_rad)`
+- `get_global_rotation()` / `set_global_rotation(deg_in_rad)`
+- `get_scale()` / `set_scale(new_scale)`
+- `get_global_scale()` / `set_global_scale(new_scale)`
+- `get_transform()` / `set_transform(transform)`
+- `get_global_transform()` / `set_global_transform(global_transform)`
+- `get_offset_mode()` / `get_offset()` / `get_animation_pose()` / `get_origin()`
 
 A direct bone write can be replaced on the next animation advance. Use `set_bone_rotation_override` when the rotation has to survive playback.
 
@@ -257,11 +257,11 @@ print(factory.get_loaded_dragon_bones_data_name_list())
 print(factory.get_loaded_dragon_bones_armature_name_list("Player"))
 ```
 
-`get_loaded_dragon_bones_data_name_list()`
-`get_loaded_dragon_bones_armature_name_list(data_name)`
-`get_loaded_dragon_bones_skin_name_list(data_name, armature_name)`
-`set_dragon_bones_ske_file_list(files)` / `get_dragon_bones_ske_file_list()`
-`set_texture_atlas_json_file_list(files)` / `get_texture_atlas_json_file_list()`
+- `get_loaded_dragon_bones_data_name_list()`
+- `get_loaded_dragon_bones_armature_name_list(data_name)`
+- `get_loaded_dragon_bones_skin_name_list(data_name, armature_name)`
+- `set_dragon_bones_ske_file_list(files)` / `get_dragon_bones_ske_file_list()`
+- `set_texture_atlas_json_file_list(files)` / `get_texture_atlas_json_file_list()`
 
 ## DragonBonesEventObject
 
@@ -273,14 +273,14 @@ func _on_event(ev: DragonBonesEventObject) -> void:
         print(data.get_strings())
 ```
 
-`get_time()` / `set_time(time)`
-`get_type()` / `set_type(type)`
-`get_type_text()` / `set_type_text(type_text)`
-`get_name()` / `set_name(name)`
-`get_armature()` / `set_armature(armature)`
-`get_bone()` / `set_bone(bone)`
-`get_slot()` / `set_slot(slot)`
-`get_data()` / `set_data(data)`
+- `get_time()` / `set_time(time)`
+- `get_type()` / `set_type(type)`
+- `get_type_text()` / `set_type_text(type_text)`
+- `get_name()` / `set_name(name)`
+- `get_armature()` / `set_armature(armature)`
+- `get_bone()` / `set_bone(bone)`
+- `get_slot()` / `set_slot(slot)`
+- `get_data()` / `set_data(data)`
 
 `name` is often empty on animation events. Use the `animation_completed` argument for the clip name.
 
@@ -298,6 +298,6 @@ if data:
     print(data.get_strings())
 ```
 
-`get_ints()`
-`get_floats()`
-`get_strings()`
+- `get_ints()`
+- `get_floats()`
+- `get_strings()`
