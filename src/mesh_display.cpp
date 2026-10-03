@@ -70,14 +70,18 @@ void DragonBonesMeshDisplay::queue_redraw() const {
 	get_armature()->queue_redraw();
 }
 
-void DragonBonesMeshDisplay::append_draw_data(DrawData &r_data, const Transform2D &p_base_transfrom, const Color &p_modulate) const {
+void DragonBonesMeshDisplay::append_draw_data(VMap<int, LocalVector<DrawData>> &r_data, const Transform2D &p_base_transfrom, const Color &p_modulate) const {
 	if (!slot->getVisible()) {
 		return;
 	}
 
 	const_cast<DragonBonesMeshDisplay *>(this)->fill_vertices_colors(slot->color * p_modulate);
 
+	if (!r_data.has(slot->_zOrder)) {
+		r_data.insert(slot->_zOrder, LocalVector<DrawData>());
+	}
 	auto armature = get_armature();
+
 	RID texture;
 	if (armature && armature->get_texture_override().is_valid()) {
 		texture = armature->get_texture_override()->get_rid();
@@ -108,10 +112,10 @@ void DragonBonesMeshDisplay::release() {
 	vertices_uv.clear();
 	vertices.clear();
 
-#ifdef DEV_ENABLED
 	// DEBUG: 清理完后回池, 待移除
-	CRASH_COND_MSG(pool.has(this), "DragonBonesMeshDisplay instance already in pool");
-#endif // DEV_ENABLED
+	if (pool.has(this)) {
+		ERR_FAIL_COND_MSG(pool.has(this), "DragonBonesMeshDisplay instance already in pool");
+	}
 	pool.push_back(this);
 }
 

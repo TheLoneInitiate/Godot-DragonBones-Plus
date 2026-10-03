@@ -149,7 +149,10 @@ public:
 	void stop(const String &p_animation_name, bool b_reset = false, bool p_recursively = false);
 	void stop_all_animations(bool b_reset = false, bool p_recursively = false);
 	void fade_in(const String &p_animation_name, float p_time,
-				 int p_loop_count, int p_layer, const String &p_group, AnimFadeOutMode p_fade_out_mode);
+			int p_loop_count, int p_layer, const String &p_group, AnimFadeOutMode p_fade_out_mode);
+
+	void fade_in_masked(const String &p_animation_name, float p_time, int p_loop_count, int p_layer, const String &p_group, AnimFadeOutMode p_fade_out_mode, const PackedStringArray &p_bones);
+	void notify_animation_completed(const String &p_name) { emit_signal(SNAME("animation_completed"), p_name); }
 
 	bool has_slot(const String &p_slot_name) const;
 	Ref<DragonBonesSlot> get_slot(const String &p_slot_name);
@@ -192,6 +195,7 @@ private:
 
 	void set_armature_settings(const Dictionary &p_settings) const;
 	Dictionary get_armature_settings() const;
+
 
 #ifdef TOOLS_ENABLED
 	mutable Ref<DragonBonesArmatureProxy> armature_ref;

@@ -34,6 +34,7 @@
 #include <godot_cpp/classes/main_loop.hpp>
 #include <godot_cpp/classes/ref.hpp>
 #include <godot_cpp/classes/rendering_server.hpp>
+#include <godot_cpp/templates/vmap.hpp>
 #include <godot_cpp/variant/array.hpp>
 
 #include "armature.h"
@@ -327,7 +328,7 @@ void DragonBonesArmatureView::_draw() {
 	}
 
 	// Collect draw data.
-	DrawData draw_data; // TODO: 避免每帧重建
+	VMap<int, LocalVector<DrawData>> draw_data;
 	armature->append_draw_data(draw_data);
 
 	if (draw_data.is_empty()) {
@@ -335,6 +336,7 @@ void DragonBonesArmatureView::_draw() {
 	}
 
 	const auto RS = RenderingServer::get_singleton();
+	const auto pairs = draw_data.get_array();
 
 	struct SurfaceData {
 		PackedInt32Array indices;
@@ -352,11 +354,11 @@ void DragonBonesArmatureView::_draw() {
 	};
 
 	// Prepare mesh data.
-	const auto &first_data = draw_data.begin()->data[0];
+	const auto &first_draw_data = pairs[0].value[0];
 	using Surfaces = std::vector<SurfaceData>;
-	std::vector<Surfaces> meshes{ { { first_data.texture, first_data.blend_mode } } };
-	for (const DrawData::Layer &layer : draw_data) {
-		for (const DrawData::Data &data : layer.data) {
+	std::vector<Surfaces> meshes{ { { first_draw_data.texture, first_draw_data.blend_mode } } };
+	for (decltype(draw_data.size()) i = 0; i < draw_data.size(); ++i) {
+		for (const DrawData &data : pairs[i].value) {
 			if (data.indices.is_empty()) {
 				continue;
 			}
@@ -431,8 +433,8 @@ void DragonBonesArmatureView::_draw() {
 		PackedVector2Array debug_vertices;
 		PackedColorArray debug_colors;
 
-		for (const DrawData::Layer &layer : draw_data) {
-			for (const auto &data : layer.data) {
+		for (decltype(draw_data.size()) i = 0; i < draw_data.size(); ++i) {
+			for (const auto &data : pairs[i].value) {
 				auto base_index = debug_vertices.size();
 				auto insert_begin_index = debug_mesh_indices.size();
 				auto data_indices_count = data.indices.size();
@@ -552,6 +554,7 @@ void DragonBonesArmatureView::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("stop", "animation_name", "reset", "recursively"), &DragonBonesArmatureView::stop, DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("stop_all_animations", "reset", "recursively"), &DragonBonesArmatureView::stop_all_animations, DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("fade_in", "animation_name", "time", "loop", "layer", "group", "fade_out_mode"), &DragonBonesArmatureView::fade_in);
+	ClassDB::bind_method(D_METHOD("fade_in_masked", "animation_name", "time", "loop", "layer", "group", "fade_out_mode", "bones"), &DragonBonesArmatureView::fade_in_masked);
 
 	ClassDB::bind_method(D_METHOD("has_slot", "slot_name"), &DragonBonesArmatureView::has_slot);
 	ClassDB::bind_method(D_METHOD("get_slot", "slot_name"), &DragonBonesArmatureView::get_slot);
@@ -611,6 +614,8 @@ void DragonBonesArmatureView::_bind_methods() {
 
 	// 信号
 	ADD_SIGNAL(MethodInfo("event_dispatched", PropertyInfo(Variant::OBJECT, "event_object", PROPERTY_HINT_NONE, "", PROPERTY_HINT_NONE, DragonBonesEventObject::get_class_static())));
+	ADD_SIGNAL(MethodInfo("animation_completed", PropertyInfo(Variant::STRING, "animation_name")));
+
 
 	// 枚举
 	BIND_ENUM_CONSTANT(ANIMATION_CALLBACK_MODE_PROCESS_PHYSICS);
@@ -706,6 +711,13 @@ void DragonBonesArmatureView::fade_in(const String &p_animation_name, float p_ti
 		int p_loop_count, int p_layer, const String &p_group, AnimFadeOutMode p_fade_out_mode) {
 	ERR_FAIL_NULL(armature);
 	armature->fade_in(p_animation_name, p_time, p_loop_count, p_layer, p_group, p_fade_out_mode);
+}
+
+void DragonBonesArmatureView::fade_in_masked(
+		const String &p_animation_name, float p_time, int p_loop_count, int p_layer,
+		const String &p_group, AnimFadeOutMode p_fade_out_mode, const PackedStringArray &p_bones) {
+	ERR_FAIL_NULL(armature);
+	armature->fade_in_masked(p_animation_name, p_time, p_loop_count, p_layer, p_group, p_fade_out_mode, p_bones);
 }
 
 bool DragonBonesArmatureView::has_slot(const String &p_slot_name) const {

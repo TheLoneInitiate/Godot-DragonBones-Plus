@@ -33,7 +33,6 @@
 #include <godot_dragon_bones.h>
 
 #include <dragonBones/event/EventObject.h>
-#include <godot_cpp/classes/ref.hpp>
 #include <godot_cpp/classes/ref_counted.hpp>
 
 namespace godot {

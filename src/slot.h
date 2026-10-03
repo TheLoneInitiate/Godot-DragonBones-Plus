@@ -106,6 +106,7 @@ public:
 	void set_display_by_name(const String &_name);
 	int get_display_index();
 	int get_display_count();
+	PackedStringArray get_display_names() const;
 	void next_display();
 	void previous_display();
 	String get_slot_name();

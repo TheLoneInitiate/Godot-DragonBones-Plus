@@ -389,6 +389,9 @@ void DragonBonesSlot::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("previous_display"), &DragonBonesSlot::previous_display);
 	ClassDB::bind_method(D_METHOD("get_child_armature"), &DragonBonesSlot::get_child_armature);
 	ClassDB::bind_method(D_METHOD("get_slot_name"), &DragonBonesSlot::get_slot_name);
+	
+	
+	ClassDB::bind_method(D_METHOD("get_display_names"), &DragonBonesSlot::get_display_names);
 }
 
 Color DragonBonesSlot::get_display_color_multiplier() {
@@ -419,8 +422,7 @@ void DragonBonesSlot::set_display_by_name(const String &_name) {
 
 	// we only want to update the slot if there's a choice
 	if (rawData->size() > 1) {
-		const CharString utf8_name = _name.utf8();
-		const char *desired_item = utf8_name.get_data();
+		const char *desired_item = _name.utf8().get_data();
 		std::string NONE_STRING("none");
 
 		if (NONE_STRING.compare(desired_item) == 0) {
@@ -451,6 +453,25 @@ int DragonBonesSlot::get_display_index() {
 int DragonBonesSlot::get_display_count() {
 	ERR_FAIL_NULL_V(slot, -1);
 	return slot->getDisplayList().size();
+}
+
+PackedStringArray DragonBonesSlot::get_display_names() const {
+	PackedStringArray names;
+	if (slot == nullptr) {
+		return names;
+	}
+	const std::vector<dragonBones::DisplayData *> *raw_data = slot->getRawDisplayDatas();
+	if (raw_data == nullptr) {
+		return names;
+	}
+	for (dragonBones::DisplayData *display_data : *raw_data) {
+		if (display_data == nullptr) {
+			names.push_back("");
+			continue;
+		}
+		names.push_back(to_gd_str(display_data->name));
+	}
+	return names;
 }
 
 void DragonBonesSlot::next_display() {

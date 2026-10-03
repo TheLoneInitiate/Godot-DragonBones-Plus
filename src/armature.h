@@ -147,7 +147,7 @@ public:
 	}
 
 	virtual void queue_redraw() const override;
-	virtual void append_draw_data(DrawData &r_data, const Transform2D &p_base_transfrom = Transform2D(), const Color &p_modulate = Color(1.0f, 1.0f, 1.0f, 1.0f)) const override;
+	virtual void append_draw_data(VMap<int, LocalVector<DrawData>> &r_data, const Transform2D &p_base_transfrom = Transform2D(), const Color &p_modulate = Color(1.0f, 1.0f, 1.0f, 1.0f)) const override;
 
 public:
 	bool is_valid() const { return armature_instance && armature_view; }
@@ -161,6 +161,7 @@ public:
 
 	bool has_animation(const String &p_animation_name) const;
 	PackedStringArray get_animations();
+	Array get_animation_states() const;
 
 	String get_current_animation_on_layer(int p_layer) const;
 	String get_current_animation_in_group(const String &p_group_name) const;
@@ -177,7 +178,18 @@ public:
 	void stop_all_animations(bool b_reset = false, bool p_recursively = false);
 	void fade_in(const String &p_animation_name, float p_time,
 			int p_loop_count, int p_layer, const String &p_group, AnimFadeOutMode p_fade_out_mode);
-
+	
+	void fade_in_masked(const String &p_animation_name, float p_time, int p_loop_count, int p_layer, const String &p_group, AnimFadeOutMode p_fade_out_mode, const PackedStringArray &p_bones);
+	void fade_out(const String &p_animation_name, float p_time = 0.0f);
+	void set_ik_enabled(const String &p_name, bool p_enabled);
+	void set_animation_time_scale(const String &p_animation_name, float p_scale);
+	void clear_bone_override(const String &p_name);
+	void set_ik_weight(const String &p_name, float p_weight);
+	
+	Dictionary _ik_rest_cache;
+	void cache_ik_rest(const String &p_name);
+	void restore_ik_rest(const String &p_name);
+	
 	void reset(bool p_recursively = false);
 
 	bool has_slot(const String &p_slot_name) const;
@@ -190,6 +202,8 @@ public:
 
 	BonesDictionary get_bones();
 	Ref<DragonBonesBone> get_bone(const String &p_name);
+	
+	void set_bone_rotation_override(const String &p_name, float p_rotation);
 
 	Rect2 get_rect() const;
 	void advance(float p_delta, bool p_recursively = false);

@@ -63,6 +63,20 @@ static void clean_static() {
 DragonBonesArmature::~DragonBonesArmature() {} // 不需要额外清理
 
 void DragonBonesArmature::_bind_methods() {
+	ClassDB::bind_method(D_METHOD("fade_in_masked", "animation_name", "time", "loop", "layer", "group", "fade_out_mode", "bones"), &DragonBonesArmature::fade_in_masked);
+	ClassDB::bind_method(D_METHOD("set_ik_enabled", "name", "enabled"), &DragonBonesArmature::set_ik_enabled);
+	ClassDB::bind_method(D_METHOD("cache_ik_rest", "name"), &DragonBonesArmature::cache_ik_rest);
+	ClassDB::bind_method(D_METHOD("restore_ik_rest", "name"), &DragonBonesArmature::restore_ik_rest);
+	ClassDB::bind_method(D_METHOD("set_bone_rotation_override", "name", "rotation"), &DragonBonesArmature::set_bone_rotation_override);
+	ClassDB::bind_method(D_METHOD("set_animation_time_scale", "animation_name", "scale"), &DragonBonesArmature::set_animation_time_scale);
+	ClassDB::bind_method(D_METHOD("get_current_animation_on_layer", "layer"), &DragonBonesArmature::get_current_animation_on_layer);
+	ClassDB::bind_method(D_METHOD("get_current_animation_in_group", "group_name"), &DragonBonesArmature::get_current_animation_in_group);
+	ClassDB::bind_method(D_METHOD("set_flip_x", "flip_x", "recursively"), &DragonBonesArmature::set_flip_x, DEFVAL(false));
+	ClassDB::bind_method(D_METHOD("fade_out", "animation_name", "time"), &DragonBonesArmature::fade_out, DEFVAL(0.0f));
+	ClassDB::bind_method(D_METHOD("clear_bone_override", "name"), &DragonBonesArmature::clear_bone_override);
+	ClassDB::bind_method(D_METHOD("get_animation_states"), &DragonBonesArmature::get_animation_states);
+	ClassDB::bind_method(D_METHOD("set_ik_weight", "name", "weight"), &DragonBonesArmature::set_ik_weight);
+	
 	ClassDB::bind_method(D_METHOD("for_each_armature", "action"), &DragonBonesArmature::for_each_armature_);
 	ClassDB::bind_method(D_METHOD("for_each_armature_recursively", "action", "current_depth"), &DragonBonesArmature::for_each_armature_recursively_, DEFVAL(0));
 
@@ -122,6 +136,7 @@ void DragonBonesArmature::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "texture_override", PROPERTY_HINT_RESOURCE_TYPE, Texture2D::get_class_static()), "set_texture_override", "get_texture_override");
 
 	ADD_SIGNAL(MethodInfo("event_dispatched", PropertyInfo(Variant::OBJECT, "event_object", PROPERTY_HINT_NONE, "", PROPERTY_HINT_NONE, DragonBonesEventObject::get_class_static())));
+	ADD_SIGNAL(MethodInfo("animation_completed", PropertyInfo(Variant::STRING, "animation_name")));
 
 	// Enum
 	BIND_ENUM_CONSTANT(FADE_OUT_NONE);
@@ -166,6 +181,14 @@ void DragonBonesArmature::dispatchDBEvent(const std::string &p_type, dragonBones
 	if (armature_view) {
 		armature_view->dispatch_event(event_object);
 	}
+
+	if (p_type == dragonBones::EventObject::COMPLETE && p_value->animationState != nullptr) {
+		String anim_name = to_gd_str(p_value->animationState->name);
+		emit_signal(SNAME("animation_completed"), anim_name);
+		if (armature_view) {
+			armature_view->notify_animation_completed(anim_name);
+		}
+	}
 }
 
 void DragonBonesArmature::for_each_armature_(const Callable &p_action) {
@@ -180,7 +203,7 @@ void DragonBonesArmature::queue_redraw() const {
 	}
 }
 
-void DragonBonesArmature::append_draw_data(DrawData &r_data, const Transform2D &p_base_transfrom, const Color &p_modulate) const {
+void DragonBonesArmature::append_draw_data(VMap<int, LocalVector<DrawData>> &r_data, const Transform2D &p_base_transfrom, const Color &p_modulate) const {
 	if (slot && !slot->getVisible()) {
 		return;
 	}
@@ -379,6 +402,89 @@ void DragonBonesArmature::fade_in(const String &p_animation_name, float p_time, 
 	}
 }
 
+void DragonBonesArmature::fade_in_masked(
+		const String &p_animation_name, float p_time, int p_loop_count, int p_layer,
+		const String &p_group, AnimFadeOutMode p_fade_out_mode, const PackedStringArray &p_bones) {
+	if (!has_animation(p_animation_name)) {
+		return;
+	}
+	auto *state = getAnimation()->fadeIn(
+			to_std_str(p_animation_name), p_time, p_loop_count, p_layer,
+			to_std_str(p_group), (AnimationFadeOutMode)p_fade_out_mode);
+	if (state == nullptr) {
+		return;
+	}
+	state->resetToPose = true;
+	state->autoFadeOutTime = 0.05f;
+	for (const String &bone_name : p_bones) {
+		state->addBoneMask(to_std_str(bone_name), true);
+	}
+}
+
+void DragonBonesArmature::clear_bone_override(const String &p_name) {
+	dragonBones::Bone *bone = getArmature()->getBone(to_std_str(p_name));
+	if (bone == nullptr) {
+		return;
+	}
+	bone->offsetMode = dragonBones::OffsetMode::None;
+	bone->offset.identity();
+	bone->invalidUpdate();
+}
+
+Array DragonBonesArmature::get_animation_states() const {
+	Array states;
+	if (!getAnimation()) {
+		return states;
+	}
+	for (dragonBones::AnimationState *state : getAnimation()->getStates()) {
+		Dictionary info;
+		info["name"] = to_gd_str(state->name);
+		info["layer"] = (int)state->layer;
+		info["group"] = to_gd_str(state->group);
+		info["time_scale"] = state->timeScale;
+		info["progress"] = state->getCurrentTime() / state->getTotalTime();
+		states.push_back(info);
+	}
+	return states;
+}
+
+void DragonBonesArmature::set_ik_enabled(const String &p_name, bool p_enabled) {
+	for (dragonBones::Constraint *constraint : getArmature()->_constraints) {
+		if (constraint->getName() == p_name.utf8().get_data()) {
+			auto *ik = static_cast<dragonBones::IKConstraint *>(constraint);
+			ik->_weight = p_enabled ? 1.0f : 0.0f;
+			static_cast<dragonBones::IKConstraintData *>(constraint->_constraintData)->weight = ik->_weight;
+			constraint->invalidUpdate();
+		}
+	}
+}
+
+void DragonBonesArmature::set_ik_weight(const String &p_name, float p_weight) {
+	p_weight = Math::clamp(p_weight, 0.0f, 1.0f);
+	for (dragonBones::Constraint *constraint : getArmature()->_constraints) {
+		if (constraint->getName() == p_name.utf8().get_data()) {
+			auto *ik = static_cast<dragonBones::IKConstraint *>(constraint);
+			ik->_weight = p_weight;
+			static_cast<dragonBones::IKConstraintData *>(constraint->_constraintData)->weight = p_weight;
+			constraint->invalidUpdate();
+		}
+	}
+}
+
+void DragonBonesArmature::set_bone_rotation_override(const String &p_name, float p_rotation) {
+	dragonBones::Bone *bone = getArmature()->getBone(to_std_str(p_name));
+	if (bone == nullptr) {
+		return;
+	}
+	bone->offsetMode = dragonBones::OffsetMode::Additive;
+	bone->offset.x = 0.0f;
+	bone->offset.y = 0.0f;
+	bone->offset.scaleX = 1.0f;
+	bone->offset.scaleY = 1.0f;
+	bone->offset.rotation = p_rotation;
+	bone->invalidUpdate();
+}
+
 void DragonBonesArmature::reset(bool p_recursively) {
 	if (getAnimation()) {
 		getAnimation()->reset();
@@ -465,15 +571,64 @@ ConstraintsDictionary DragonBonesArmature::get_ik_constraints() {
 void DragonBonesArmature::set_ik_constraint(const String &p_name, Vector2 p_position) {
 	for (dragonBones::Constraint *constraint : getArmature()->_constraints) {
 		if (constraint->getName() == p_name.utf8().get_data()) {
-			dragonBones::BoneData *target = const_cast<BoneData *>(constraint->_constraintData->target);
+			dragonBones::BoneData *target = const_cast<dragonBones::BoneData *>(constraint->_constraintData->target);
 			target->transform.x = p_position.x;
 			target->transform.y = p_position.y;
-
 			constraint->_constraintData->setTarget(target);
 			constraint->update();
 			getArmature()->invalidUpdate(target->name, true);
 		}
 	}
+}
+
+void DragonBonesArmature::cache_ik_rest(const String &p_name) {
+	if (_ik_rest_cache.has(p_name)) {
+		return;
+	}
+	for (dragonBones::Constraint *constraint : getArmature()->_constraints) {
+		if (constraint->getName() == p_name.utf8().get_data()) {
+			const dragonBones::BoneData *target = constraint->_constraintData->target;
+			_ik_rest_cache[p_name] = Vector2(target->transform.x, target->transform.y);
+		}
+	}
+}
+
+void DragonBonesArmature::restore_ik_rest(const String &p_name) {
+	if (!_ik_rest_cache.has(p_name)) {
+		return;
+	}
+	Vector2 rest = _ik_rest_cache[p_name];
+	for (dragonBones::Constraint *constraint : getArmature()->_constraints) {
+		if (constraint->getName() == p_name.utf8().get_data()) {
+			dragonBones::BoneData *target = const_cast<dragonBones::BoneData *>(constraint->_constraintData->target);
+			target->transform.x = rest.x;
+			target->transform.y = rest.y;
+			constraint->update();
+			getArmature()->invalidUpdate(target->name, true);
+		}
+	}
+}
+
+void DragonBonesArmature::set_animation_time_scale(const String &p_animation_name, float p_scale) {
+	if (!getAnimation()) {
+		return;
+	}
+	dragonBones::AnimationState *state = getAnimation()->getState(to_std_str(p_animation_name));
+	if (state == nullptr) {
+		return;
+	}
+	state->timeScale = p_scale;
+}
+
+void DragonBonesArmature::fade_out(const String &p_animation_name, float p_time) {
+	if (!getAnimation()) {
+		return;
+	}
+	dragonBones::AnimationState *state = getAnimation()->getState(to_std_str(p_animation_name));
+	if (state == nullptr) {
+		return;
+	}
+	state->fadeOut(p_time, true);
 }
 
 void DragonBonesArmature::set_ik_constraint_bend_positive(const String &name, bool p_bend_positive) {
@@ -761,8 +916,8 @@ void DragonBonesArmatureProxy::_get_property_list(List<PropertyInfo> *p_list) co
 
 	if (armature->has_sub_armature()) {
 		p_list->push_back(PropertyInfo(Variant::ARRAY, SNAME("sub_armatures"),
-									   PROPERTY_HINT_TYPE_STRING, vformat("%d/%d:%s", Variant::OBJECT, PROPERTY_HINT_RESOURCE_TYPE, DragonBonesArmatureProxy::get_class_static()),
-									   PROPERTY_USAGE_EDITOR));
+				PROPERTY_HINT_TYPE_STRING, vformat("%d/%d:%s", Variant::OBJECT, PROPERTY_HINT_RESOURCE_TYPE, DragonBonesArmatureProxy::get_class_static()),
+				PROPERTY_USAGE_EDITOR));
 	}
 }
 
