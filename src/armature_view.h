@@ -153,6 +153,9 @@ public:
 
 	void fade_in_masked(const String &p_animation_name, float p_time, int p_loop_count, int p_layer, const String &p_group, AnimFadeOutMode p_fade_out_mode, const PackedStringArray &p_bones);
 	void notify_animation_completed(const String &p_name) { emit_signal(SNAME("animation_completed"), p_name); }
+	void notify_frame_event(const String &p_clip, const String &p_event) {
+	emit_signal(SNAME("frame_event"), p_clip, p_event);
+	}
 
 	bool has_slot(const String &p_slot_name) const;
 	Ref<DragonBonesSlot> get_slot(const String &p_slot_name);

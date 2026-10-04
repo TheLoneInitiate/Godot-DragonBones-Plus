@@ -615,6 +615,7 @@ void DragonBonesArmatureView::_bind_methods() {
 	// 信号
 	ADD_SIGNAL(MethodInfo("event_dispatched", PropertyInfo(Variant::OBJECT, "event_object", PROPERTY_HINT_NONE, "", PROPERTY_HINT_NONE, DragonBonesEventObject::get_class_static())));
 	ADD_SIGNAL(MethodInfo("animation_completed", PropertyInfo(Variant::STRING, "animation_name")));
+	ADD_SIGNAL(MethodInfo("frame_event", PropertyInfo(Variant::STRING, "animation_name"), PropertyInfo(Variant::STRING, "event_name")));
 
 
 	// 枚举
