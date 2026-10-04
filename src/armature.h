@@ -204,6 +204,8 @@ public:
 	Ref<DragonBonesBone> get_bone(const String &p_name);
 	
 	void set_bone_rotation_override(const String &p_name, float p_rotation);
+	Vector2 get_bone_global_pos(const String &p_name);
+	float get_bone_global_rotation(const String &p_name);
 
 	Rect2 get_rect() const;
 	void advance(float p_delta, bool p_recursively = false);

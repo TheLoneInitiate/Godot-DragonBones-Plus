@@ -76,6 +76,8 @@ void DragonBonesArmature::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("clear_bone_override", "name"), &DragonBonesArmature::clear_bone_override);
 	ClassDB::bind_method(D_METHOD("get_animation_states"), &DragonBonesArmature::get_animation_states);
 	ClassDB::bind_method(D_METHOD("set_ik_weight", "name", "weight"), &DragonBonesArmature::set_ik_weight);
+	ClassDB::bind_method(D_METHOD("get_bone_global_pos", "name"), &DragonBonesArmature::get_bone_global_pos);
+	ClassDB::bind_method(D_METHOD("get_bone_global_rotation", "name"), &DragonBonesArmature::get_bone_global_rotation);
 	
 	ClassDB::bind_method(D_METHOD("for_each_armature", "action"), &DragonBonesArmature::for_each_armature_);
 	ClassDB::bind_method(D_METHOD("for_each_armature_recursively", "action", "current_depth"), &DragonBonesArmature::for_each_armature_recursively_, DEFVAL(0));
@@ -429,6 +431,22 @@ void DragonBonesArmature::clear_bone_override(const String &p_name) {
 	bone->offsetMode = dragonBones::OffsetMode::None;
 	bone->offset.identity();
 	bone->invalidUpdate();
+}
+
+Vector2 DragonBonesArmature::get_bone_global_pos(const String &p_name) {
+	Ref<DragonBonesBone> wrapper = get_bone(p_name);
+	if (wrapper.is_null()) {
+		return Vector2();
+	}
+	return wrapper->get_global_position();
+}
+
+float DragonBonesArmature::get_bone_global_rotation(const String &p_name) {
+	Ref<DragonBonesBone> wrapper = get_bone(p_name);
+	if (wrapper.is_null()) {
+		return 0.0f;
+	}
+	return wrapper->get_global_rotation();
 }
 
 Array DragonBonesArmature::get_animation_states() const {
