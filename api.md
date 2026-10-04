@@ -26,6 +26,19 @@ Fades one active clip out. This is what runs the pose reset. `stop()` does not.
 arm.fade_out("Swing", 0.1)
 ```
 
+`set_animation_weight(animation_name, weight)`
+
+Sets how much one playing animation mixes in, from `0.0` to `1.0`. `1.0` is the full animation. This mixes animations that move the same bones. It does not start or loop an animation. Use `fade_in_masked` when the animations should move different bones.
+The call does nothing if that animation is not already playing. A second `fade_in` while it is still playing stacks another mix on top.
+
+```gdscript
+arm.fade_in_masked(
+    "Flinch", -1.0, 1, 1, "hit",
+    DragonBonesArmature.FADE_OUT_NONE,
+    PackedStringArray(["Hip"])
+)
+arm.set_animation_weight("Flinch", 0.3)
+
 `set_animation_time_scale(animation_name, scale)`
 
 Sets the speed of one active clip. `1.0` is normal. Does not change other clips.
@@ -58,6 +71,22 @@ Clears the additive offset and sets offset mode to none.
 ```gdscript
 arm.clear_bone_override("ArmRightUpper")
 ```
+
+`get_bone_global_pos(name)`
+
+Returns the bone position after the armature advances. Same value as `get_bone(name).get_global_position()`.
+
+```gdscript
+sprite.global_position = arm.get_bone_global_pos("HandRight")
+
+
+`get_bone_global_rotation(name)`
+
+Returns the bone rotation in radians. Same value as get_bone(name).get_global_rotation().
+
+```gdscript
+print(arm.get_bone_global_rotation("ArmLeftUpper"))
+
 
 `set_ik_enabled(name, enabled)`
 
@@ -130,6 +159,15 @@ func _on_animation_completed(animation_name: String) -> void:
         attacking = false
 ```
 
+`signal frame_event(animation_name, event_name)`
+
+Emitted when playback reaches a frame event on a clip. `event_name` is the label set on the Event row in DragonBones.
+
+```gdscript
+func _on_frame_event(_clip: String, event_name: String) -> void:
+    if event_name == "LeftFootTouched":
+        print("left foot")
+
 ### DragonBonesSlot
 
 `get_display_names()`
@@ -170,6 +208,7 @@ var arm := view.get_armature()
 Callback modes: `ANIMATION_CALLBACK_MODE_PROCESS_PHYSICS`, `ANIMATION_CALLBACK_MODE_PROCESS_IDLE`, `ANIMATION_CALLBACK_MODE_PROCESS_MANUAL`.
 
 Signal: `event_dispatched(event_object)`.
+Signal: `frame_event(animation_name, event_name)`
 
 ## DragonBonesArmature
 

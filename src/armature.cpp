@@ -69,6 +69,7 @@ void DragonBonesArmature::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("restore_ik_rest", "name"), &DragonBonesArmature::restore_ik_rest);
 	ClassDB::bind_method(D_METHOD("set_bone_rotation_override", "name", "rotation"), &DragonBonesArmature::set_bone_rotation_override);
 	ClassDB::bind_method(D_METHOD("set_animation_time_scale", "animation_name", "scale"), &DragonBonesArmature::set_animation_time_scale);
+	ClassDB::bind_method(D_METHOD("set_animation_weight", "animation_name", "weight"), &DragonBonesArmature::set_animation_weight);
 	ClassDB::bind_method(D_METHOD("get_current_animation_on_layer", "layer"), &DragonBonesArmature::get_current_animation_on_layer);
 	ClassDB::bind_method(D_METHOD("get_current_animation_in_group", "group_name"), &DragonBonesArmature::get_current_animation_in_group);
 	ClassDB::bind_method(D_METHOD("set_flip_x", "flip_x", "recursively"), &DragonBonesArmature::set_flip_x, DEFVAL(false));
@@ -645,6 +646,17 @@ void DragonBonesArmature::set_animation_time_scale(const String &p_animation_nam
 		return;
 	}
 	state->timeScale = p_scale;
+}
+
+void DragonBonesArmature::set_animation_weight(const String &p_animation_name, float p_weight) {
+	if (!getAnimation()) {
+		return;
+	}
+	dragonBones::AnimationState *state = getAnimation()->getState(to_std_str(p_animation_name));
+	if (state == nullptr) {
+		return;
+	}
+	state->weight = Math::clamp(p_weight, 0.0f, 1.0f);
 }
 
 void DragonBonesArmature::fade_out(const String &p_animation_name, float p_time) {

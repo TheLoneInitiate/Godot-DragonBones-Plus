@@ -183,6 +183,7 @@ public:
 	void fade_out(const String &p_animation_name, float p_time = 0.0f);
 	void set_ik_enabled(const String &p_name, bool p_enabled);
 	void set_animation_time_scale(const String &p_animation_name, float p_scale);
+	void set_animation_weight(const String &p_animation_name, float p_weight);
 	void clear_bone_override(const String &p_name);
 	void set_ik_weight(const String &p_name, float p_weight);
 	
