@@ -83,7 +83,9 @@ void DragonBonesMeshDisplay::append_draw_data(VMap<int, LocalVector<DrawData>> &
 	auto armature = get_armature();
 
 	RID texture;
-	if (armature && armature->get_texture_override().is_valid()) {
+	if (slot->texture_override.is_valid()) {
+		texture = slot->texture_override->get_rid();
+	} else if (armature && armature->get_texture_override().is_valid()) {
 		texture = armature->get_texture_override()->get_rid();
 	} else if (slot->get_texture().is_valid()) {
 		texture = slot->get_texture()->get_rid();
@@ -102,6 +104,20 @@ void DragonBonesMeshDisplay::append_draw_data(VMap<int, LocalVector<DrawData>> &
 			debug_color,
 #endif // DEBUG_ENABLED
 	});
+
+	if (slot->region_override_enabled && slot->region_atlas_width > 0.0f && slot->region_atlas_height > 0.0f) {
+		const auto &from = slot->region_from;
+		const auto &to = slot->region_override;
+		const float atlas_w = slot->region_atlas_width;
+		const float atlas_h = slot->region_atlas_height;
+		PackedVector2Array &uvs = r_data[slot->_zOrder][r_data[slot->_zOrder].size() - 1].vertices_uv;
+		for (int i = 0; i < uvs.size(); ++i) {
+			float u = (uvs[i].x * atlas_w - from.x) / from.width;
+			float v = (uvs[i].y * atlas_h - from.y) / from.height;
+			uvs[i].x = (to.x + u * to.width) / atlas_w;
+			uvs[i].y = (to.y + v * to.height) / atlas_h;
+		}
+	}
 }
 
 void DragonBonesMeshDisplay::release() {

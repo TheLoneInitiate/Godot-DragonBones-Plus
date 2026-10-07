@@ -141,7 +141,10 @@ void DragonBonesArmature::_bind_methods() {
 
 	ADD_SIGNAL(MethodInfo("event_dispatched", PropertyInfo(Variant::OBJECT, "event_object", PROPERTY_HINT_NONE, "", PROPERTY_HINT_NONE, DragonBonesEventObject::get_class_static())));
 	ADD_SIGNAL(MethodInfo("animation_completed", PropertyInfo(Variant::STRING, "animation_name")));
-	ADD_SIGNAL(MethodInfo("frame_event", PropertyInfo(Variant::STRING, "animation_name"), PropertyInfo(Variant::STRING, "event_name")));
+	ADD_SIGNAL(MethodInfo("frame_event",
+		PropertyInfo(Variant::STRING, "animation_name"),
+		PropertyInfo(Variant::STRING, "event_name"),
+		PropertyInfo(Variant::VECTOR2, "bone_position")));
 
 	// Enum
 	BIND_ENUM_CONSTANT(FADE_OUT_NONE);
@@ -197,9 +200,13 @@ void DragonBonesArmature::dispatchDBEvent(const std::string &p_type, dragonBones
 	if (p_type == dragonBones::EventObject::FRAME_EVENT && p_value->animationState != nullptr) {
 		String anim_name = to_gd_str(p_value->animationState->name);
 		String event_name = to_gd_str(p_value->name);
-		emit_signal(SNAME("frame_event"), anim_name, event_name);
+		Vector2 position;
+		if (p_value->bone != nullptr) {
+			position = get_bone_global_pos(to_gd_str(p_value->bone->getName()));
+		}
+		emit_signal(SNAME("frame_event"), anim_name, event_name, position);
 		if (armature_view) {
-			armature_view->notify_frame_event(anim_name, event_name);
+			armature_view->notify_frame_event(anim_name, event_name, position);
 		}
 	}
 }

@@ -51,6 +51,18 @@ Ref<Texture2D> Slot_GD::get_texture() const {
 	return {};
 }
 
+void Slot_GD::set_region_override(const dragonBones::Rectangle &p_to) {
+	if (_textureData == nullptr || _textureData->getParent() == nullptr) {
+		region_override_enabled = false;
+		return;
+	}
+	region_from = _textureData->region;
+	region_override = p_to;
+	region_atlas_width = _textureData->getParent()->width;
+	region_atlas_height = _textureData->getParent()->height;
+	region_override_enabled = true;
+}
+
 void Slot_GD::_updateZOrder() {
 	if (get_display()) {
 		get_display()->queue_redraw();
@@ -391,7 +403,11 @@ void DragonBonesSlot::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_slot_name"), &DragonBonesSlot::get_slot_name);
 	ClassDB::bind_method(D_METHOD("get_slot_z"), &DragonBonesSlot::get_slot_z);
 	ClassDB::bind_method(D_METHOD("set_slot_z", "z"), &DragonBonesSlot::set_slot_z);
-	
+	ClassDB::bind_method(D_METHOD("set_texture_override", "texture"), &DragonBonesSlot::set_texture_override);
+	ClassDB::bind_method(D_METHOD("get_texture_override"), &DragonBonesSlot::get_texture_override);
+	ClassDB::bind_method(D_METHOD("set_display_region", "name"), &DragonBonesSlot::set_display_region);
+	ClassDB::bind_method(D_METHOD("clear_display_region"), &DragonBonesSlot::clear_display_region);
+		
 	
 	ClassDB::bind_method(D_METHOD("get_display_names"), &DragonBonesSlot::get_display_names);
 }
@@ -513,6 +529,49 @@ void DragonBonesSlot::set_slot_z(int p_z) {
 		display->queue_redraw();
 	}
 }
+
+void DragonBonesSlot::set_texture_override(const Ref<Texture2D> &p_texture) {
+	ERR_FAIL_NULL(slot);
+	slot->texture_override = p_texture;
+	if (auto display = slot->get_display()) {
+		display->queue_redraw();
+	}
+}
+
+Ref<Texture2D> DragonBonesSlot::get_texture_override() const {
+	ERR_FAIL_NULL_V(slot, Ref<Texture2D>());
+	return slot->texture_override;
+}
+
+void DragonBonesSlot::set_display_region(const String &p_name) {
+	ERR_FAIL_NULL(slot);
+	const std::vector<dragonBones::DisplayData *> *raw = slot->getRawDisplayDatas();
+	ERR_FAIL_NULL(raw);
+	for (dragonBones::DisplayData *data : *raw) {
+		if (data == nullptr || data->type != dragonBones::DisplayType::Image) {
+			continue;
+		}
+		if (to_gd_str(data->name) != p_name) {
+			continue;
+		}
+		auto *image = static_cast<dragonBones::ImageDisplayData *>(data);
+		ERR_FAIL_NULL(image->texture);
+		slot->set_region_override(image->texture->region);
+		if (auto display = slot->get_display()) {
+			display->queue_redraw();
+		}
+		return;
+	}
+}
+
+void DragonBonesSlot::clear_display_region() {
+	ERR_FAIL_NULL(slot);
+	slot->region_override_enabled = false;
+	if (auto display = slot->get_display()) {
+		display->queue_redraw();
+	}
+}
+
 
 DragonBonesArmature *DragonBonesSlot::get_child_armature() {
 	if (!slot || slot->getDisplayList().size() == 0)

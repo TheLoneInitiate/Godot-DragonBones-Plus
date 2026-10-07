@@ -190,6 +190,22 @@ print(slot.get_display_names())
 slot.set_display_by_name("torso2")
 ```
 
+`set_display_region(name)`
+
+Points the current mesh at another display rectangle in the same atlas. The mesh and its weights stay. Both rectangles must be the same size, so export the atlas with **Strip whitespace** off. `set_display_by_name` switches the whole display and drops the original weights.
+
+```gdscript
+var slot := arm.get_slot("Head")
+slot.set_display_region("Head2")
+slot.clear_display_region()
+
+`clear_display_region(name)`
+
+Clears the rectangle override and restores the slot's original picture.
+
+```gdscript
+get_armature().get_slot(slot_name).clear_display_region()
+
 `get_slot_z()`
 
 Returns the slot draw order. Higher values draw in front.

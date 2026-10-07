@@ -51,10 +51,19 @@ private:
 
 public:
 	CanvasItemMaterial::BlendMode blend_mode{ CanvasItemMaterial::BLEND_MODE_MIX };
-	Color color; // 直接对该变量进行设置，跳过基类的 _setColor()/colorTransform
+	Color color;
+	Ref<Texture2D> texture_override;
 
 	Ref<Texture2D> get_texture() const;
 	Display *get_display() const { return static_cast<Display *>(getDisplay()); }
+	
+	bool region_override_enabled = false;
+	dragonBones::Rectangle region_from;
+	dragonBones::Rectangle region_override;
+	float region_atlas_width = 0.0f;
+	float region_atlas_height = 0.0f;
+
+	void set_region_override(const dragonBones::Rectangle &p_to);
 
 public:
 	virtual void _updateVisible() override;
@@ -112,8 +121,13 @@ public:
 	String get_slot_name();
 	int get_slot_z() const;
 	void set_slot_z(int p_z);
+	void set_texture_override(const Ref<Texture2D> &p_texture);
+	Ref<Texture2D> get_texture_override() const;
+	void set_display_region(const String &p_name);
+	void clear_display_region();
 
 	class DragonBonesArmature *get_child_armature();
+	
 };
 
 } //namespace godot
