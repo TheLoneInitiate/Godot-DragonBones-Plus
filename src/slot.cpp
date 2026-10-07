@@ -389,6 +389,8 @@ void DragonBonesSlot::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("previous_display"), &DragonBonesSlot::previous_display);
 	ClassDB::bind_method(D_METHOD("get_child_armature"), &DragonBonesSlot::get_child_armature);
 	ClassDB::bind_method(D_METHOD("get_slot_name"), &DragonBonesSlot::get_slot_name);
+	ClassDB::bind_method(D_METHOD("get_slot_z"), &DragonBonesSlot::get_slot_z);
+	ClassDB::bind_method(D_METHOD("set_slot_z", "z"), &DragonBonesSlot::set_slot_z);
 	
 	
 	ClassDB::bind_method(D_METHOD("get_display_names"), &DragonBonesSlot::get_display_names);
@@ -497,6 +499,19 @@ void DragonBonesSlot::previous_display() {
 String DragonBonesSlot::get_slot_name() {
 	ERR_FAIL_NULL_V(slot, {});
 	return to_gd_str(slot->getName());
+}
+
+int DragonBonesSlot::get_slot_z() const {
+	ERR_FAIL_NULL_V(slot, 0);
+	return slot->_zOrder;
+}
+
+void DragonBonesSlot::set_slot_z(int p_z) {
+	ERR_FAIL_NULL(slot);
+	slot->_zOrder = p_z;
+	if (auto display = slot->get_display()) {
+		display->queue_redraw();
+	}
 }
 
 DragonBonesArmature *DragonBonesSlot::get_child_armature() {

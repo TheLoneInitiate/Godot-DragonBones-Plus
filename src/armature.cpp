@@ -74,6 +74,7 @@ void DragonBonesArmature::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_current_animation_in_group", "group_name"), &DragonBonesArmature::get_current_animation_in_group);
 	ClassDB::bind_method(D_METHOD("set_flip_x", "flip_x", "recursively"), &DragonBonesArmature::set_flip_x, DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("fade_out", "animation_name", "time"), &DragonBonesArmature::fade_out, DEFVAL(0.0f));
+	ClassDB::bind_method(D_METHOD("fade_out_group", "group", "time"), &DragonBonesArmature::fade_out_group, DEFVAL(0.0f));
 	ClassDB::bind_method(D_METHOD("clear_bone_override", "name"), &DragonBonesArmature::clear_bone_override);
 	ClassDB::bind_method(D_METHOD("get_animation_states"), &DragonBonesArmature::get_animation_states);
 	ClassDB::bind_method(D_METHOD("set_ik_weight", "name", "weight"), &DragonBonesArmature::set_ik_weight);
@@ -430,6 +431,18 @@ void DragonBonesArmature::fade_in_masked(
 	state->autoFadeOutTime = 0.05f;
 	for (const String &bone_name : p_bones) {
 		state->addBoneMask(to_std_str(bone_name), true);
+	}
+}
+
+void DragonBonesArmature::fade_out_group(const String &p_group, float p_time) {
+	if (!getAnimation()) {
+		return;
+	}
+	const std::string group = to_std_str(p_group);
+	for (dragonBones::AnimationState *state : getAnimation()->getStates()) {
+		if (state != nullptr && state->group == group) {
+			state->fadeOut(p_time, true);
+		}
 	}
 }
 

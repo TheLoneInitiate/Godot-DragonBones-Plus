@@ -181,6 +181,7 @@ public:
 	
 	void fade_in_masked(const String &p_animation_name, float p_time, int p_loop_count, int p_layer, const String &p_group, AnimFadeOutMode p_fade_out_mode, const PackedStringArray &p_bones);
 	void fade_out(const String &p_animation_name, float p_time = 0.0f);
+	void fade_out_group(const String &p_group, float p_time = 0.0f);
 	void set_ik_enabled(const String &p_name, bool p_enabled);
 	void set_animation_time_scale(const String &p_animation_name, float p_scale);
 	void set_animation_weight(const String &p_animation_name, float p_weight);

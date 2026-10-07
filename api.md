@@ -26,6 +26,16 @@ Fades one active clip out. This is what runs the pose reset. `stop()` does not.
 arm.fade_out("Swing", 0.1)
 ```
 
+`fade_out_group(group, time = 0.0)`
+
+Fades out every playing animation that was started with that group. Other groups keep playing. The group is the string passed to `fade_in`, not a value from the DragonBones editor.
+
+```gdscript
+arm.fade_in_masked("Flinch", -1.0, 1, 1, "hit", DragonBonesArmature.FADE_OUT_NONE, PackedStringArray(["Hip"]))
+arm.fade_out_group("hit", 0.1)
+
+
+
 `set_animation_weight(animation_name, weight)`
 
 Sets how much one playing animation mixes in, from `0.0` to `1.0`. `1.0` is the full animation. This mixes animations that move the same bones. It does not start or loop an animation. Use `fade_in_masked` when the animations should move different bones.
@@ -179,6 +189,24 @@ var slot := arm.get_slot("torso")
 print(slot.get_display_names())
 slot.set_display_by_name("torso2")
 ```
+
+`get_slot_z()`
+
+Returns the slot draw order. Higher values draw in front.
+
+```gdscript
+var slot := arm.get_slot("torso")
+print(slot.get_slot_z())
+
+`set_slot_z()`
+
+Sets the slot draw order. The change shows on the next redraw. A slot with a z-order keyframe can be overwritten by the animation.
+
+```gdscript
+var slot := arm.get_slot("torso")
+var saved := slot.get_slot_z()
+slot.set_slot_z(saved + 100)
+slot.set_slot_z(saved)
 
 ## DragonBonesArmatureView
 

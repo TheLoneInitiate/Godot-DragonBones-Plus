@@ -110,6 +110,8 @@ public:
 	void next_display();
 	void previous_display();
 	String get_slot_name();
+	int get_slot_z() const;
+	void set_slot_z(int p_z);
 
 	class DragonBonesArmature *get_child_armature();
 };
