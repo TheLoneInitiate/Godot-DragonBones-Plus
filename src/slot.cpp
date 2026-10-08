@@ -403,6 +403,9 @@ void DragonBonesSlot::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_slot_name"), &DragonBonesSlot::get_slot_name);
 	ClassDB::bind_method(D_METHOD("get_slot_z"), &DragonBonesSlot::get_slot_z);
 	ClassDB::bind_method(D_METHOD("set_slot_z", "z"), &DragonBonesSlot::set_slot_z);
+	ClassDB::bind_method(D_METHOD("get_slot_rect"), &DragonBonesSlot::get_slot_rect);
+	ClassDB::bind_method(D_METHOD("get_slot_polygon"), &DragonBonesSlot::get_slot_polygon);
+	ClassDB::bind_method(D_METHOD("get_slot_indices"), &DragonBonesSlot::get_slot_indices);
 	ClassDB::bind_method(D_METHOD("set_texture_override", "texture"), &DragonBonesSlot::set_texture_override);
 	ClassDB::bind_method(D_METHOD("get_texture_override"), &DragonBonesSlot::get_texture_override);
 	ClassDB::bind_method(D_METHOD("set_display_region", "name"), &DragonBonesSlot::set_display_region);
@@ -528,6 +531,46 @@ void DragonBonesSlot::set_slot_z(int p_z) {
 	if (auto display = slot->get_display()) {
 		display->queue_redraw();
 	}
+}
+
+Rect2 DragonBonesSlot::get_slot_rect() const {
+	ERR_FAIL_NULL_V(slot, Rect2());
+	Display *display = slot->get_display();
+	ERR_FAIL_NULL_V(display, Rect2());
+	auto *mesh = dynamic_cast<DragonBonesMeshDisplay *>(display);
+	ERR_FAIL_NULL_V(mesh, Rect2());
+	if (mesh->vertices.is_empty()) {
+		return Rect2();
+	}
+	Rect2 rect(display->transform.xform(mesh->vertices[0]), Size2());
+	for (int i = 1; i < mesh->vertices.size(); ++i) {
+		rect = rect.expand(display->transform.xform(mesh->vertices[i]));
+	}
+	return rect;
+}
+
+PackedVector2Array DragonBonesSlot::get_slot_polygon() const {
+	PackedVector2Array polygon;
+	ERR_FAIL_NULL_V(slot, polygon);
+	Display *display = slot->get_display();
+	ERR_FAIL_NULL_V(display, polygon);
+	auto *mesh = dynamic_cast<DragonBonesMeshDisplay *>(display);
+	ERR_FAIL_NULL_V(mesh, polygon);
+	polygon.resize(mesh->vertices.size());
+	for (int i = 0; i < mesh->vertices.size(); ++i) {
+		polygon[i] = display->transform.xform(mesh->vertices[i]);
+	}
+	return polygon;
+}
+
+PackedInt32Array DragonBonesSlot::get_slot_indices() const {
+	PackedInt32Array indices;
+	ERR_FAIL_NULL_V(slot, indices);
+	Display *display = slot->get_display();
+	ERR_FAIL_NULL_V(display, indices);
+	auto *mesh = dynamic_cast<DragonBonesMeshDisplay *>(display);
+	ERR_FAIL_NULL_V(mesh, indices);
+	return mesh->indices;
 }
 
 void DragonBonesSlot::set_texture_override(const Ref<Texture2D> &p_texture) {

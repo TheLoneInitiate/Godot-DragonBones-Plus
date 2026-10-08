@@ -224,6 +224,31 @@ var saved := slot.get_slot_z()
 slot.set_slot_z(saved + 100)
 slot.set_slot_z(saved)
 
+`get_slot_rect()`
+
+Returns the slot mesh bounds in armature space for the current frame. It follows the animation. Convert it with the view before using it on an `Area2D`.
+
+```gdscript
+var rect := arm.get_slot("torso").get_slot_rect()
+var origin := view.to_global(rect.position)
+var end := view.to_global(rect.position + rect.size)
+var world := Rect2(origin, end - origin)
+
+
+`get_slot_polygon()`
+
+Returns the slot mesh vertices in armature space for the current frame. This is the triangle vertex list, not a filled outline.
+
+`get_slot_indices()`
+
+RReturns the triangle indices for that mesh. Boundary edges are the pairs that appear once.
+
+```gdscript
+var slot := arm.get_slot("torso")
+var points := slot.get_slot_polygon()
+var indices := slot.get_slot_indices()
+
+
 ## DragonBonesArmatureView
 
 The scene node. Most playback calls are forwarded to the armature.
@@ -311,6 +336,9 @@ slot.set_display_by_name("none")
 - `next_display()` / `previous_display()`
 - `get_display_color_multiplier()` / `set_display_color_multiplier(color)`
 - `get_child_armature()`
+- `get_slot_rect()`
+- `get_slot_polygon()`
+- `get_slot_indices()`
 
 ## DragonBonesBone
 
