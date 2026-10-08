@@ -1,0 +1,58 @@
+[infomation]
+name = "Godot-DragonBones-Plus"
+version = "v2.0.3-dev"
+decription = "A DragonBones plugin for Godot."
+author = "忘忧の (Daylily Zeleen) - Updated version by TheLoneInitiate"
+email = "daylily-zeleen@foxmail.com"
+support_link = "https://PixelState.org"
+repo = "https://github.com/TheLoneInitiate/Godot-DragonBones-Plus"
+
+[icons]
+
+DragonBonesArmatureView = "icons/DragonBonesBlue.png"
+DragonBonesFactory = "icons/DragonBonesFactory.png"
+
+DragonBonesArmatureProxy = "icons/DragonBonesArmature.png"
+DragonBonesArmature = "icons/DragonBonesArmature.png"
+DragonBonesBone = "icons/DragonBonesBone.png"
+DragonBonesSlot = "icons/DragonBonesSlot.png"
+DragonBonesEventObject = "icons/DragonBonesWhite.png"
+DragonBonesUserData = "icons/DragonBonesWhite.png"
+
+[configuration]
+
+entry_symbol = "godot_dragon_bones_library_init"
+compatibility_minimum = 4.2
+
+[libraries]
+linux.x86_64.debug = "bin/dragonbonespluslinux.template_debug.x86_64.so"
+linux.x86_64.release = "bin/dragonbonesplus.linux.template_release.x86_64.so"
+linux.x86_32.debug = "bin/dragonbonesplus.linux.template_debug.x86_32.so"
+linux.x86_32.release = "bin/dragonbonesplus.linux.template_release.x86_32.so"
+windows.x86_64.debug = "bin/dragonbonesplus.windows.template_debug.x86_64.dll"
+windows.x86_64.release = "bin/dragonbonesplus.windows.template_release.x86_64.dll"
+windows.x86_32.debug = "bin/dragonbonesplus.windows.template_debug.x86_32.dll"
+windows.x86_32.release = "bin/dragonbonesplus.windows.template_release.x86_32.dll"
+macos.debug = "bin/dragonbonesplus.macos.template_debug.framework"
+macos.release = "bin/dragonbonesplus.macos.template_release.framework"
+android.debug.arm64 = "bin/dragonbonesplus.android.template_debug.arm64.so"
+android.release.arm64 = "bin/dragonbonesplus.android.template_release.arm64.so"
+android.debug.x86_64 = "bin/dragonbonesplus.android.template_debug.x86_64.so"
+android.release.x86_64 = "bin/dragonbonesplus.android.template_release.x86_64.so"
+android.debug.arm32 = "bin/dragonbonesplus.android.template_debug.arm32.so"
+android.release.arm32 = "bin/dragonbonesplus.android.template_release.arm32.so"
+android.debug.x86_32 = "bin/dragonbonesplus.android.template_debug.x86_32.so"
+android.release.x86_32 = "bin/dragonbonesplus.android.template_release.x86_32.so"
+ios.debug = "bin/dragonbonesplus.ios.template_debug.xcframework"
+ios.release = "bin/dragonbonesplus.ios.template_release.xcframework"
+web.debug.wasm32 = "bin/dragonbonesplus.web.template_debug.wasm32.wasm"
+web.release.wasm32 = "bin/dragonbonesplus.web.template_release.wasm32.wasm"
+
+
+[dependencies]
+ios.debug = {
+  "bin/libgodot-cpp.ios.template_debug.xcframework": ""
+}
+ios.release = {
+  "bin/libgodot-cpp.ios.template_release.xcframework": ""
+}

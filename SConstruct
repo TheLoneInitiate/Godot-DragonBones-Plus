@@ -1,36 +1,6 @@
 # -*- coding: utf-8 -*-
 #!/usr/bin/env python
 
-# /**************************************************************************/
-# /*  SConstruct                                                            */
-# /**************************************************************************/
-# /*                         This file is part of:                          */
-# /*                           Godot-DragonBones                            */
-# /*        https://github.com/Daylily-Zeleen/Godot-DragonBones             */
-# /**************************************************************************/
-# /* Copyright (c) 2024-present 忘忧の (Daylily-Zeleen)                      */
-# /*               - Contact: daylily-zeleen@foxmail.com                    */
-# /*                                                                        */
-# /* Permission is hereby granted, free of charge, to any person obtaining  */
-# /* a copy of this software and associated documentation files (the        */
-# /* "Software"), to deal in the Software without restriction, including    */
-# /* without limitation the rights to use, copy, modify, merge, publish,    */
-# /* distribute, sublicense, and/or sell copies of the Software, and to     */
-# /* permit persons to whom the Software is furnished to do so, subject to  */
-# /* the following conditions:                                              */
-# /*                                                                        */
-# /* The above copyright notice and this permission notice shall be         */
-# /* included in all copies or substantial portions of the Software.        */
-# /*                                                                        */
-# /* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-# /* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-# /* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-# /* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-# /* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-# /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-# /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-# /**************************************************************************/
-
 import os
 import shutil
 
@@ -39,7 +9,7 @@ os.system("chcp 65001")
 
 
 env = SConscript("godot-cpp/SConstruct")
-lib_name = "libgddragonbones"
+lib_name = "dragonbonesplus"
 # For the reference:
 # - CCFLAGS are compilation flags shared between C and C++
 # - CFLAGS are for C-specific compilation flags
@@ -49,16 +19,15 @@ lib_name = "libgddragonbones"
 # - CPPDEFINES are for pre-processor defines
 # - LINKFLAGS are for linking flags
 
-# tweak this if you want to use different folders, or more folders, to store your source code in.
 env.Append(CPPPATH=["src/", "thirdparty/"])
 sources = Glob("src/*.cpp") + Glob("register_types.cpp")
 
 
-output_bin_folder = "./bin"
-plugin_folder = "./demo/addons/godot_dragon_bones.daylily-zeleen"
+output_bin_folder = "./addons/dragon_bones_plus/bin"
+plugin_folder = ".addons/dragon_bones_plus"
 plugin_bin_folder = f"{plugin_folder}/bin"
 
-extension_file = "demo/addons/godot_dragon_bones.daylily-zeleen/godot_dragon_bones.gdextension"
+extension_file = "addons/dragon_bones_plus/dragon_bones_plus.gdextension"
 
 generated_doc_data_file :str = "gen/doc_data.cpp"
 
@@ -175,21 +144,19 @@ def on_complete(target, source, env):
         )
 
     copied_readme_file_path = os.path.join(plugin_folder, "README.md")
-    copied_readme_zh_file_path = os.path.join(plugin_folder, "README.zh.md")
 
     copy_file("README.md", copied_readme_file_path)
-    copy_file("README.zh.md", copied_readme_zh_file_path)
     copy_file("LICENSE", os.path.join(plugin_folder, "LICENSE"))
 
     # 替换 readme 中图片的路径
-    for fp in [copied_readme_file_path, copied_readme_zh_file_path]:
+    for fp in [copied_readme_file_path]:
         f = open(fp, "r", encoding="utf8")
         lines = f.readlines()
         f.close()
 
         for i in range(len(lines)):
-            if lines[i].count("(demo/addons/godot_dragon_bones.daylily-zeleen/") > 0:
-                lines[i] = lines[i].replace("(demo/addons/godot_dragon_bones.daylily-zeleen/", "(")
+            if lines[i].count("(addons/dragon_bones_plus/") > 0:
+                lines[i] = lines[i].replace("(addons/dragon_bones_plus/", "(")
 
         f = open(fp, "w", encoding="utf8")
         f.writelines(lines)
@@ -213,7 +180,7 @@ def on_complete(target, source, env):
     f.writelines(lines)
     f.close()
 
-    print(f"Update version number in \"godot_dragon_bones.gdextension\", {version}")
+    print(f"Update version number in \"dragon_bones_plus.gdextension\", {version}")
 
 
 # Disable scons cache for source files
