@@ -7,7 +7,7 @@ This fork adds layered animation blending, per-clip speed, bone overrides, IK we
 ## Setup
 
 1. Build with `scons target=template_debug` or `scons target=template_release`.
-2. Copy `bin/libgddragonbones.*` into the addon `bin` folder.
+2. Copy `addons` folder into root directory of your Godot project
 3. Enable the plugin and reload the project.
 4. Add a `DragonBonesArmatureView` node and assign a `DragonBonesFactory`.
 
