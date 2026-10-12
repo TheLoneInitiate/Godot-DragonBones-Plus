@@ -108,8 +108,18 @@ void Slot_GD::_onUpdateDisplay() {}
 void Slot_GD::_addDisplay() {}
 
 void Slot_GD::_replaceDisplay(void *value, bool isArmatureDisplay) {
-	ERR_FAIL_NULL(get_display());
-	get_display()->queue_redraw();
+	if (isArmatureDisplay) {
+		// Child armature is already set up by the base class.
+		// Just request a redraw if we have a display.
+		if (auto display = get_display()) {
+			display->queue_redraw();
+		}
+		return;
+	}
+
+	if (auto display = get_display()) {
+		display->queue_redraw();
+	}
 }
 
 void Slot_GD::_removeDisplay() {
@@ -321,17 +331,24 @@ void Slot_GD::_identityTransform() {
 }
 
 void Slot_GD::_updateTransform() {
-	Vector2 pos = Vector2(0, 0);
 	auto display = get_display();
+	if (display == nullptr) {
+		return;
+	}
+
+	// Child armatures are drawn via their own append_draw_data path.
+	// Just ensure a redraw is requested; do not treat them as mesh displays.
+	if (_childArmature != nullptr) {
+		display->queue_redraw();
+		return;
+	}
+
+	Vector2 pos = Vector2(0, 0);
 	if (display == _rawDisplay || display == _meshDisplay) {
 		pos.x = globalTransformMatrix.tx - (globalTransformMatrix.a * _pivotX + globalTransformMatrix.c * _pivotY);
 		pos.y = globalTransformMatrix.ty - (globalTransformMatrix.b * _pivotX + globalTransformMatrix.d * _pivotY);
-	} else if (_childArmature) {
-		pos.x = globalTransformMatrix.tx;
-		pos.y = globalTransformMatrix.ty;
 	} else {
 		Vector2 anchorPoint(1.f, 1.f);
-
 		pos.x = globalTransformMatrix.tx - (globalTransformMatrix.a * anchorPoint.x - globalTransformMatrix.c * anchorPoint.y);
 		pos.y = globalTransformMatrix.ty - (globalTransformMatrix.b * anchorPoint.x - globalTransformMatrix.d * anchorPoint.y);
 	}
@@ -371,6 +388,8 @@ void DragonBonesSlot::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("next_display"), &DragonBonesSlot::next_display);
 	ClassDB::bind_method(D_METHOD("previous_display"), &DragonBonesSlot::previous_display);
 	ClassDB::bind_method(D_METHOD("get_child_armature"), &DragonBonesSlot::get_child_armature);
+	ClassDB::bind_method(D_METHOD("set_child_armature_display", "name"), &DragonBonesSlot::set_child_armature_display);
+	ClassDB::bind_method(D_METHOD("clear_child_armature_display"), &DragonBonesSlot::clear_child_armature_display);
 	ClassDB::bind_method(D_METHOD("get_slot_name"), &DragonBonesSlot::get_slot_name);
 	ClassDB::bind_method(D_METHOD("get_slot_z"), &DragonBonesSlot::get_slot_z);
 	ClassDB::bind_method(D_METHOD("set_slot_z", "z"), &DragonBonesSlot::set_slot_z);
@@ -424,8 +443,17 @@ void DragonBonesSlot::set_display_by_name(const String &_name) {
 
 		for (int i = 0; i < rawData->size(); i++) {
 			DisplayData *display_data = rawData->at(i);
+			if (display_data == nullptr) {
+				continue;
+			}
 
 			if (display_data->name.compare(desired_item) == 0) {
+				//print_line(vformat("Found display '%s' at index %d, type = %d", _name, i, (int)display_data->type));
+
+				if (display_data->type == dragonBones::DisplayType::Armature) {
+					return;   // <-- temporary: do not activate it to prevent bug crashes when trying to set display to an armature
+				}
+
 				slot->setDisplayIndex(i);
 				return;
 			}
@@ -648,14 +676,101 @@ void DragonBonesSlot::clear_display_region() {
 
 
 DragonBonesArmature *DragonBonesSlot::get_child_armature() {
-	if (!slot || slot->getDisplayList().size() == 0)
+	if (!slot || slot->getDisplayIndex() < 0 || slot->getDisplayList().size() == 0) {
 		return nullptr;
+	}
 
-	std::pair<void *, DisplayType> display = slot->getDisplayList()[slot->getDisplayIndex()];
-	if (display.second == DisplayType::Armature) {
+	const auto &display = slot->getDisplayList()[slot->getDisplayIndex()];
+	if (display.second == DisplayType::Armature && display.first != nullptr) {
 		Armature *armature = static_cast<Armature *>(display.first);
-		DragonBonesArmature *converted = static_cast<DragonBonesArmature *>(armature->getDisplay());
-		return converted;
+		if (armature == nullptr) {
+			return nullptr;
+		}
+		return static_cast<DragonBonesArmature *>(armature->getDisplay());
 	}
 	return nullptr;
+}
+
+bool DragonBonesSlot::set_child_armature_display(const String &p_name) {
+	ERR_FAIL_NULL_V(slot, false);
+	const std::vector<DisplayData *> *rawData = slot->getRawDisplayDatas();
+	if (rawData == nullptr) {
+		return false;
+	}
+
+	const char *desired = p_name.utf8().get_data();
+	for (int i = 0; i < (int)rawData->size(); i++) {
+		DisplayData *data = rawData->at(i);
+		if (data == nullptr || data->type != dragonBones::DisplayType::Armature) {
+			continue;
+		}
+		if (data->name.compare(desired) != 0) {
+			continue;
+		}
+
+		return slot->activate_child_armature(i);
+	}
+
+	ERR_PRINT(vformat("No armature display named '%s' in slot", p_name));
+	return false;
+}
+
+void DragonBonesSlot::clear_child_armature_display() {
+	ERR_FAIL_NULL(slot);
+	slot->clear_child_armature();
+}
+
+bool Slot_GD::activate_child_armature(int index) {
+	if (index < 0 || index >= (int)getDisplayList().size()) {
+		return false;
+	}
+
+	const auto &pair = getDisplayList()[index];
+	if (pair.second != dragonBones::DisplayType::Armature || pair.first == nullptr) {
+		return false;
+	}
+
+	_displayIndex = index;
+	_childArmature = static_cast<dragonBones::Armature *>(pair.first);
+
+	// print_line(vformat("Slot matrix: a=%f b=%f c=%f d=%f tx=%f ty=%f",
+			// globalTransformMatrix.a, globalTransformMatrix.b,
+			// globalTransformMatrix.c, globalTransformMatrix.d,
+			// globalTransformMatrix.tx, globalTransformMatrix.ty));
+
+	const std::vector<DisplayData *> *rawData = getRawDisplayDatas();
+	
+	// if (rawData && index < (int)rawData->size() && rawData->at(index)) {
+		// const auto &dt = rawData->at(index)->transform;
+		// print_line(vformat("Display transform: x=%f y=%f rot=%f skew=%f scaleX=%f scaleY=%f",
+				// dt.x, dt.y, dt.rotation, dt.skew, dt.scaleX, dt.scaleY));
+	// }
+
+	if (auto *child_display = static_cast<DragonBonesArmature *>(_childArmature->getDisplay())) {
+		const auto &m = globalTransformMatrix;
+		Transform2D matrix(
+			m.a, m.b,
+			-m.c, -m.d,
+			m.tx, m.ty
+		);
+
+		// Apply the authored display rotation (π = 180°)
+		if (rawData && index < (int)rawData->size() && rawData->at(index)) {
+			matrix = matrix.rotated(rawData->at(index)->transform.rotation);
+		}
+
+		child_display->transform = matrix;
+		child_display->queue_redraw();
+	}
+
+	_visibleDirty = true;
+	_colorDirty = true;
+
+	return true;
+}
+
+void Slot_GD::clear_child_armature() {
+	_displayIndex = -1;
+	_childArmature = nullptr;
+	_visibleDirty = true;
 }

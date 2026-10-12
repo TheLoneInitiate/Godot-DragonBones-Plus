@@ -180,6 +180,25 @@ func _on_frame_event(_clip: String, event_name: String) -> void:
 
 ### DragonBonesSlot
 
+# Child armature displays (weapons, etc.)
+```gdscript
+	var arm := get_armature()
+	var slot := arm.get_slot("WeaponSlot")
+	slot.set_child_armature_display("Pickaxe")
+	var child := slot.get_child_armature()
+	if child:
+	print(child.get_animations())
+	slot.clear_child_armature_display()
+
+`set_child_armature_display(name)
+
+Activates a child armature display by name (safe path that bypasses the normal display index). Returns true on success.
+
+
+`clear_child_armature_display()
+
+Clears the active child armature display (equivalent to setting the slot to none for armature displays).
+
 `get_display_names()`
 
 Returns the display names on that slot, in index order.
@@ -247,7 +266,7 @@ RReturns the triangle indices for that mesh. Boundary edges are the pairs that a
 var slot := arm.get_slot("torso")
 var points := slot.get_slot_polygon()
 var indices := slot.get_slot_indices()
-
+```
 
 ## DragonBonesArmatureView
 

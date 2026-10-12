@@ -200,9 +200,50 @@ void DragonBonesArmature::append_draw_data(VMap<int, LocalVector<DrawData>> &r_d
 
 	const Transform2D global_transform = p_base_transfrom * transform;
 	for (const Slot *raw_slot : armature_instance->getSlots()) {
-		const Slot_GD *slot = static_cast<const Slot_GD *>(raw_slot);
-		if (auto display = slot->get_display()) {
-			display->append_draw_data(r_data, global_transform, slot->color * p_modulate);
+		const Slot_GD *slot_gd = static_cast<const Slot_GD *>(raw_slot);
+
+		// Prefer normal display
+		if (auto display = slot_gd->get_display()) {
+			display->append_draw_data(r_data, global_transform, slot_gd->color * p_modulate);
+			continue;
+		}
+
+		// Fallback: if this slot has an active child armature, draw it
+		if (slot_gd->_childArmature != nullptr) {
+			if (auto *child_display = static_cast<DragonBonesArmature *>(slot_gd->_childArmature->getDisplay())) {
+				dragonBones::Bone *attach = getArmature()->getBone("WeaponBone");
+				if (!attach) {
+					attach = getArmature()->getBone("WeaponSlot");
+				}
+				if (attach) {
+					const auto &m = attach->globalTransformMatrix;
+
+					// Bone's current matrix (correct position + animated rotation)
+					Transform2D bone_matrix(
+						m.a, m.b,
+						-m.c, -m.d,
+						m.tx, m.ty
+					);
+
+					// Data-driven extra rotation from the display (falls back to 180°)
+					float extra_rot = Math_PI;
+					const auto *raw = slot_gd->getRawDisplayDatas();
+					if (raw && slot_gd->getDisplayIndex() >= 0 &&
+							slot_gd->getDisplayIndex() < (int)raw->size() &&
+							(*raw)[slot_gd->getDisplayIndex()] != nullptr) {
+						extra_rot = (*raw)[slot_gd->getDisplayIndex()]->transform.rotation;
+					}
+
+					// Rotate around the weapon's current position
+					Vector2 pos = bone_matrix.get_origin();
+					bone_matrix.set_origin(Vector2(0, 0));
+					bone_matrix = bone_matrix.rotated(extra_rot);
+					bone_matrix.set_origin(pos);
+
+					child_display->transform = bone_matrix;
+				}
+				child_display->append_draw_data(r_data, global_transform, slot_gd->color * p_modulate);
+			}
 		}
 	}
 }

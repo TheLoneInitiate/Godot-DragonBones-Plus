@@ -120,19 +120,38 @@ Slot *DragonBonesFactory::_buildSlot(const BuildArmaturePackage &dataPackage, co
 }
 
 Armature *DragonBonesFactory::_buildChildArmature(const BuildArmaturePackage *dataPackage, Slot *slot, DisplayData *displayData) const {
-	auto childDisplayName = slot->_slotData->name;
+	if (displayData == nullptr || displayData->path.empty()) {
+		return nullptr;
+	}
 
 	const auto proxy = static_cast<DragonBonesArmature *>(slot->getArmature()->getDisplay());
+	if (proxy == nullptr) {
+		return nullptr;
+	}
 
 	DragonBonesArmature *childArmature = nullptr;
 
 	if (dataPackage != nullptr) {
 		childArmature = buildArmatureDisplay(displayData->path, dataPackage->dataName);
 	} else {
-		childArmature = buildArmatureDisplay(displayData->path, displayData->getParent()->parent->parent->name);
+		auto *parent_data = displayData->getParent();
+		if (parent_data && parent_data->parent && parent_data->parent->parent) {
+			childArmature = buildArmatureDisplay(displayData->path, parent_data->parent->parent->name);
+		}
 	}
 
-	ERR_FAIL_NULL_V_MSG(childArmature, nullptr, "Child armature is null");
+	if (childArmature == nullptr) {
+		ERR_PRINT(vformat("Failed to build child armature: %s", to_gd_str(displayData->path)));
+		return nullptr;
+	}
+
+	// Share the parent view so redraws work
+	childArmature->armature_view = proxy->armature_view;
+
+	if (childArmature->getArmature()) {
+		childArmature->getArmature()->setFlipY(true);
+	}
+
 	return childArmature->getArmature();
 }
 

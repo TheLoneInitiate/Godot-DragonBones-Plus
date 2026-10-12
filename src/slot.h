@@ -18,6 +18,7 @@ private:
 	float _textureScale;
 
 	friend class DragonBonesFactory;
+	friend class DragonBonesArmature;
 
 public:
 	CanvasItemMaterial::BlendMode blend_mode{ CanvasItemMaterial::BLEND_MODE_MIX };
@@ -26,7 +27,11 @@ public:
 
 	Ref<Texture2D> get_texture() const;
 	Display *get_display() const { return static_cast<Display *>(getDisplay()); }
-	
+
+	// Internal helpers for safe armature display activation
+	bool activate_child_armature(int index);
+	void clear_child_armature();
+
 	bool region_override_enabled = false;
 	dragonBones::Rectangle region_from;
 	dragonBones::Rectangle region_override;
@@ -69,6 +74,7 @@ private:
 	friend class DragonBonesFactory;
 	friend class DragonBonesArmature;
 
+
 public:
 	DragonBonesSlot() = default;
 	DragonBonesSlot(Slot_GD *p_slot) :
@@ -101,6 +107,10 @@ public:
 	void clear_display_region();
 
 	class DragonBonesArmature *get_child_armature();
+	
+	// New: safe armature display switching (bypasses crashing base path)
+	bool set_child_armature_display(const String &p_name);
+	void clear_child_armature_display();
 	
 };
 

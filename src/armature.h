@@ -84,13 +84,17 @@ public:
 			if (slot->getDisplayList().size() == 0) {
 				continue;
 			}
+			// Negative index means "[NULL]" — do not force it to 0
 			if (slot->getDisplayIndex() < 0) {
-				slot->setDisplayIndex(0);
+				continue;
 			}
 			auto display = slot->getDisplayList()[slot->getDisplayIndex()];
-			if (display.second == dragonBones::DisplayType::Armature) {
-				dragonBones::Armature *armature_view = static_cast<dragonBones::Armature *>(display.first);
-				DragonBonesArmature *convertedDisplay = static_cast<DragonBonesArmature *>(armature_view->getDisplay());
+			if (display.second == dragonBones::DisplayType::Armature && display.first != nullptr) {
+				dragonBones::Armature *child_arm = static_cast<dragonBones::Armature *>(display.first);
+				DragonBonesArmature *convertedDisplay = static_cast<DragonBonesArmature *>(child_arm->getDisplay());
+				if (convertedDisplay == nullptr) {
+					continue;
+				}
 				if constexpr (std::is_invocable_r_v<bool, Func, DragonBonesArmature *>) {
 					if (p_action(convertedDisplay)) {
 						break;
