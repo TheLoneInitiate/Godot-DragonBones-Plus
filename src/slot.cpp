@@ -7,6 +7,7 @@
 #include "armature.h"
 #include "mesh_display.h"
 #include "texture_atlas_data.h"
+#include <map>
 
 using namespace godot;
 using namespace dragonBones;
@@ -376,6 +377,7 @@ void DragonBonesSlot::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_slot_rect"), &DragonBonesSlot::get_slot_rect);
 	ClassDB::bind_method(D_METHOD("get_slot_polygon"), &DragonBonesSlot::get_slot_polygon);
 	ClassDB::bind_method(D_METHOD("get_slot_indices"), &DragonBonesSlot::get_slot_indices);
+	ClassDB::bind_method(D_METHOD("get_slot_outline"), &DragonBonesSlot::get_slot_outline);
 	ClassDB::bind_method(D_METHOD("set_texture_override", "texture"), &DragonBonesSlot::set_texture_override);
 	ClassDB::bind_method(D_METHOD("get_texture_override"), &DragonBonesSlot::get_texture_override);
 	ClassDB::bind_method(D_METHOD("set_display_region", "name"), &DragonBonesSlot::set_display_region);
@@ -541,6 +543,65 @@ PackedInt32Array DragonBonesSlot::get_slot_indices() const {
 	auto *mesh = dynamic_cast<DragonBonesMeshDisplay *>(display);
 	ERR_FAIL_NULL_V(mesh, indices);
 	return mesh->indices;
+}
+
+PackedVector2Array DragonBonesSlot::get_slot_outline() const {
+	PackedVector2Array outline;
+	ERR_FAIL_NULL_V(slot, outline);
+	Display *display = slot->get_display();
+	ERR_FAIL_NULL_V(display, outline);
+	auto *mesh = dynamic_cast<DragonBonesMeshDisplay *>(display);
+	ERR_FAIL_NULL_V(mesh, outline);
+	if (mesh->vertices.is_empty() || mesh->indices.size() < 3) {
+		return outline;
+	}
+
+	std::map<int64_t, Vector2i> edges;
+	const int count = mesh->indices.size();
+	for (int i = 0; i + 2 < count; i += 3) {
+		Vector2i pairs[3] = {
+			Vector2i(mesh->indices[i], mesh->indices[i + 1]),
+			Vector2i(mesh->indices[i + 1], mesh->indices[i + 2]),
+			Vector2i(mesh->indices[i + 2], mesh->indices[i]),
+		};
+		for (int p = 0; p < 3; ++p) {
+			int a = MIN(pairs[p].x, pairs[p].y);
+			int b = MAX(pairs[p].x, pairs[p].y);
+			int64_t key = ((int64_t)a << 32) | (uint32_t)b;
+			if (edges.find(key) != edges.end()) {
+				edges.erase(key);
+			} else {
+				edges[key] = pairs[p];
+			}
+		}
+	}
+	if (edges.empty()) {
+		return outline;
+	}
+
+	Vector<Vector2i> unused;
+	for (const auto &edge : edges) {
+		unused.push_back(edge.second);
+	}
+	int current = unused[0].x;
+	const int guard_max = mesh->vertices.size() + 2;
+	for (int guard = 0; guard < guard_max && !unused.is_empty(); ++guard) {
+		outline.push_back(display->transform.xform(mesh->vertices[current]));
+		int found = -1;
+		for (int i = 0; i < unused.size(); ++i) {
+			if (unused[i].x == current || unused[i].y == current) {
+				found = i;
+				break;
+			}
+		}
+		if (found == -1) {
+			break;
+		}
+		Vector2i pair = unused[found];
+		current = pair.x == current ? pair.y : pair.x;
+		unused.remove_at(found);
+	}
+	return outline;
 }
 
 void DragonBonesSlot::set_texture_override(const Ref<Texture2D> &p_texture) {

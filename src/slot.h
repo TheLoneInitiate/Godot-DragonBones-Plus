@@ -94,6 +94,7 @@ public:
 	Rect2 get_slot_rect() const;
 	PackedVector2Array get_slot_polygon() const;
 	PackedInt32Array get_slot_indices() const;
+	PackedVector2Array get_slot_outline() const;
 	void set_texture_override(const Ref<Texture2D> &p_texture);
 	Ref<Texture2D> get_texture_override() const;
 	void set_display_region(const String &p_name);
