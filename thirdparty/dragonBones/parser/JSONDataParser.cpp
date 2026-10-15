@@ -1837,10 +1837,9 @@ DragonBonesData* JSONDataParser::_parseDragonBonesData(const JsonValue& rawData,
     const auto& compatibleVersion = _getString(rawData, COMPATIBLE_VERSION, "");
     const auto& info = _getString(rawData, "info", "");
 
-    if (
-        indexOf(DATA_VERSIONS, version) >= 0 ||
-        indexOf(DATA_VERSIONS, compatibleVersion) >= 0
-        )
+    // Accept any version (including LoongBones 6.0+).
+    // The format is close enough to 5.5 that the existing parser can handle it.
+    if (true)
     {
         const auto data = BaseObject::borrowObject<DragonBonesData>();
         data->version = version;

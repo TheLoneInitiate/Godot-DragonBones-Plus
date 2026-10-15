@@ -15,9 +15,11 @@ const std::vector<std::string> DataParser::DATA_VERSIONS
     DataParser::DATA_VERSION_4_0,
     DataParser::DATA_VERSION_4_5,
     DataParser::DATA_VERSION_5_0,
-    DataParser::DATA_VERSION_5_5
+    DataParser::DATA_VERSION_5_5,
+    "6.0",
+    "6.1",
+    "7.0"   // future-proofing
 };
-
 const char* DataParser::TEXTURE_ATLAS = "TextureAtlas";
 const char* DataParser::SUB_TEXTURE = "SubTexture";
 const char* DataParser::FORMAT = "format";
